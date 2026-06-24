@@ -27,6 +27,11 @@ OpenCode 위에서 동작하는 skill-centered multi-agent orchestration pack입
 - 4개 시나리오 테스트 완료 (단순 수정, 복합 작업, 리뷰, 세션 이어가기)
 - `--command "omo-orchestrate"`로 명시적 pipeline 실행 확인
 - Memory CRUD (.opencode/memory/) 정상 동작 확인
+- Adoption test (Scenario A: local-only bugfix) 완료
+  - 대상: dotfiles installer repo (install.sh)
+  - 모델: Step 3.5 Flash NVIDIA NIM
+  - 결과: 4번의 checkpoint iteration 후 성공
+  - 테스트: circular dependency test passed, non-circular dependency test passed, bash syntax check passed
 
 ### Known limitations
 

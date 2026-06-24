@@ -25,6 +25,10 @@
 - [ ] **Research depth control**: `--quick` / `--deep` flag for web-rag skill
 - [ ] **Memory pruning**: Auto-archive memory files older than N days
 - [ ] **Handoff template**: Standardized handoff.md format with checklist
+- [ ] **Checkpoint validation**: Auto-run syntax/test checks before accepting checkpoint
+- [ ] **Better error messages**: Provide specific "what went wrong" and "how to fix" guidance
+- [ ] **Iteration limit**: Configurable max checkpoint count to prevent infinite loops
+- [ ] **Progress visualization**: Show current stage and iteration count in status
 
 ---
 
