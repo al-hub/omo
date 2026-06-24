@@ -18,7 +18,7 @@ Options:
   --target PATH    Install to PATH (default: current directory)
   --global         Install to ~/.config/opencode
   --dry-run        Show what would be done without making changes
-  --force          Overwrite existing files (backup created)
+  --force          Overwrite existing agents/skills (backup created)
   --help           Show this help message
 EOF
   exit 0
@@ -26,7 +26,13 @@ EOF
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --target)  TARGET_DIR="$2"; shift 2 ;;
+    --target)
+      if [ -z "${2:-}" ] || [[ "$2" == -* ]]; then
+        echo "Error: --target requires a PATH argument"
+        echo "Usage: $0 --target /path/to/project"
+        exit 1
+      fi
+      TARGET_DIR="$2"; shift 2 ;;
     --global)  GLOBAL=true; shift ;;
     --dry-run) DRY_RUN=true; shift ;;
     --force)   FORCE=true; shift ;;
@@ -63,7 +69,7 @@ OMO_MARKER_START='<!-- OMO:BEGIN -->'
 OMO_MARKER_END='<!-- OMO:END -->'
 
 echo "============================================"
-echo " OMO Installer v0.1.0"
+echo " OMO Installer v0.1.1-dev"
 echo "============================================"
 echo " Source : $OMO_SOURCE_DIR"
 echo " Target : $TARGET_DIR"
@@ -71,38 +77,45 @@ $DRY_RUN && echo " Mode   : dry-run (no changes will be made)"
 echo ""
 
 # ── Check existing files ──────────────────────
-existing=()
+existing_agents_skills=()
 for f in "${FILES_AGENTS[@]}"; do
-  [ -e "$TARGET_DIR/$f" ] && existing+=("$TARGET_DIR/$f")
+  [ -e "$TARGET_DIR/$f" ] && existing_agents_skills+=("$TARGET_DIR/$f")
 done
 for d in "${DIRS_SKILLS[@]}"; do
-  [ -d "$TARGET_DIR/$d" ] && existing+=("$TARGET_DIR/$d")
+  [ -d "$TARGET_DIR/$d" ] && existing_agents_skills+=("$TARGET_DIR/$d")
 done
-[ -f "$TARGET_DIR/AGENTS.md" ] && existing+=("$TARGET_DIR/AGENTS.md")
+has_agents_md=false
+[ -f "$TARGET_DIR/AGENTS.md" ] && has_agents_md=true
 
-if [ ${#existing[@]} -gt 0 ]; then
-  if ! $FORCE; then
-    echo "Error: Existing files found. Use --force to overwrite:"
-    for f in "${existing[@]}"; do echo "  $f"; done
-    echo ""
-    echo "AGENTS.md will never be overwritten entirely — marker-based merge is used."
-    echo "Use --force to enable overwrite of agents/skills and AGENTS.md merge."
-    exit 1
-  fi
+if [ ${#existing_agents_skills[@]} -gt 0 ] && ! $FORCE; then
+  echo "Error: Existing agents/skills found. Use --force to overwrite:"
+  for f in "${existing_agents_skills[@]}"; do echo "  $f"; done
+  echo ""
+  echo "Note: AGENTS.md alone does not require --force (marker merge is safe)."
+  exit 1
 fi
 
 # ── Backup ────────────────────────────────────
-if $FORCE && [ ${#existing[@]} -gt 0 ] && ! $DRY_RUN; then
-  echo "Creating backup at $BACKUP_DIR"
-  mkdir -p "$BACKUP_DIR"
-  for f in "${FILES_AGENTS[@]}"; do
-    [ -f "$TARGET_DIR/$f" ] && mkdir -p "$BACKUP_DIR/$(dirname "$f")" && cp "$TARGET_DIR/$f" "$BACKUP_DIR/$f"
-  done
-  for d in "${DIRS_SKILLS[@]}"; do
-    [ -d "$TARGET_DIR/$d" ] && mkdir -p "$BACKUP_DIR/$(dirname "$d")" && cp -r "$TARGET_DIR/$d" "$BACKUP_DIR/$d"
-  done
-  [ -f "$TARGET_DIR/AGENTS.md" ] && cp "$TARGET_DIR/AGENTS.md" "$BACKUP_DIR/AGENTS.md"
-  echo ""
+if ! $DRY_RUN; then
+  # Backup agents/skills only when --force (they get overwritten)
+  if $FORCE && [ ${#existing_agents_skills[@]} -gt 0 ]; then
+    echo "Creating backup at $BACKUP_DIR"
+    mkdir -p "$BACKUP_DIR"
+    for f in "${FILES_AGENTS[@]}"; do
+      [ -f "$TARGET_DIR/$f" ] && mkdir -p "$BACKUP_DIR/$(dirname "$f")" && cp "$TARGET_DIR/$f" "$BACKUP_DIR/$f"
+    done
+    for d in "${DIRS_SKILLS[@]}"; do
+      [ -d "$TARGET_DIR/$d" ] && mkdir -p "$BACKUP_DIR/$(dirname "$d")" && cp -r "$TARGET_DIR/$d" "$BACKUP_DIR/$d"
+    done
+    echo ""
+  fi
+  # Always backup AGENTS.md before merge if it exists
+  if $has_agents_md; then
+    echo "Backing up AGENTS.md to $BACKUP_DIR"
+    mkdir -p "$BACKUP_DIR"
+    cp "$TARGET_DIR/AGENTS.md" "$BACKUP_DIR/AGENTS.md"
+    echo ""
+  fi
 fi
 
 # ── Install agents ────────────────────────────
@@ -126,6 +139,8 @@ for d in "${DIRS_SKILLS[@]}"; do
   if $DRY_RUN; then
     echo "  [copy] $d/"
   else
+    # Remove first to prevent nested directory on reinstall
+    rm -rf "$dest"
     mkdir -p "$(dirname "$dest")"
     cp -r "$OMO_SOURCE_DIR/$d" "$dest"
     echo "  $d/"

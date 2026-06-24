@@ -70,14 +70,24 @@ git subtree add --prefix .omo https://github.com/al-hub/omo.git main --squash
 git submodule add https://github.com/al-hub/omo.git .omo
 ```
 
-### C. 직접 복사
+### C. git archive (ZIP 배포)
+
+git clone 없이 특정 버전만 ZIP 파일로 받아 설치할 수 있습니다.
+
+```bash
+# GitHub Release 페이지에서 omo.zip 다운로드 후
+unzip omo.zip -d /tmp/omo && cd /tmp/omo
+./install.sh --target /path/to/your/project
+```
+
+### D. 직접 복사
 
 ```bash
 # omo 레포를 클론한 후, 필요한 파일만 복사
 cp -r AGENTS.md opencode.jsonc .opencode/ docs/ <target-project>/
 ```
 
-### D. 수동 통합
+### E. 수동 통합
 
 프로젝트에 이미 `AGENTS.md`나 `opencode.jsonc`가 있다면,
 OMO의 설정을 참고하여 필요한 부분만 병합하세요.
