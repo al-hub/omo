@@ -40,6 +40,12 @@ docs/                  Architecture & workflow documentation
 - Override model assignments in `opencode.jsonc` → `agent.<name>.model`.
 - See `docs/WORKFLOW.md` for a walkthrough.
 
+## Known limitations
+
+- In headless mode, `ask` permissions may be denied depending on OpenCode runtime behavior.
+- Skill auto-loading can be implicit; use `--command "omo-orchestrate"` for explicit execution.
+- Snapshot glob behavior may vary; direct filesystem access is a fallback.
+
 ## License
 
 MIT
