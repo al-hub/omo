@@ -69,7 +69,7 @@ OMO_MARKER_START='<!-- OMO:BEGIN -->'
 OMO_MARKER_END='<!-- OMO:END -->'
 
 echo "============================================"
-echo " OMO Installer v0.1.1-dev"
+echo " OMO Installer v0.1.2-dev"
 echo "============================================"
 echo " Source : $OMO_SOURCE_DIR"
 echo " Target : $TARGET_DIR"
