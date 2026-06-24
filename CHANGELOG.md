@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`install.sh`** — 단일 Bash 기반 installer (--target, --global, --dry-run, --force 지원)
+- **`docs/INSTALLER.md`** — 설치 도구 사용 가이드
+- README.md Installation 섹션에 install.sh 방법 추가
+
 ## v0.1.0 — MVP (2026-06-24)
 
 **OMO (Oh-My-Orchestrator)** 초기 릴리즈.
