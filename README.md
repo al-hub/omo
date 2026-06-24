@@ -1,45 +1,129 @@
-# OMO (Oh-My-Orchestrator)
+# OMO — Oh-My-Orchestrator
 
-Skill-centered multi-agent orchestration layer for OpenCode.
+OpenCode 전용 **multi-agent orchestration layer**입니다.
+Markdown 기반의 agent 정의, skill workflow, flat-file memory를 조합하여
+복잡한 소프트웨어 엔지니어링 작업을 추적 가능한 파이프라인으로 실행합니다.
+
+> OMO를 프로젝트에 추가하면, 기본 build agent가 orchestrator 역할을 수행하고,
+> 복잡한 요청을 scout → memory → web-rag → plan → handoff → implement → checkpoint → review → summary
+> 의 9단계로 나누어 처리합니다.
+
+---
+
+## Who is this for
+
+- **OpenCode 사용자** — 복잡한 다중 파일 작업을 구조화하고 싶은 사람
+- **AI 보조 코딩을 체계화하려는 팀** — 작업 내역을 추적 가능한 문서로 남기고 싶은 팀
+- **소형/무료 모델로 최대 효율을 원하는 개발자** — 계산 집약적 작업은 큰 모델에, 단순 작업은 작은 모델에 분배
+- **OpenCode 확장 개발자** — skill/agent 시스템의 실제 사용 예시를 참고하려는 사람
+
+---
 
 ## Quick start
 
-1. Clone this repo (or copy its contents into any OpenCode project).
-2. OpenCode automatically reads `AGENTS.md`, `opencode.jsonc`, `.opencode/agents/`, and `.opencode/skills/`.
-3. Open an interactive session: `opencode .`
-4. Give a complex task — the orchestrator follows the AGENTS.md rules.
+```bash
+# 1. OMO를 프로젝트에 추가
+git clone https://github.com/al-hub/omo.git .omo
+# 또는 직접 복사: cp -r .omo/* <target-project>/
 
-For explicit skill execution (recommended for complex multi-step tasks):
+# 2. OpenCode 세션 시작
+opencode .
 
+# 3. 복잡한 작업을 요청
+# → orchestrator가 자동으로 9단계 파이프라인을 실행합니다
 ```
-opencode run --command "omo-orchestrate" "your task description"
+
+명시적 pipeline 실행이 필요하다면:
+
+```bash
+opencode run --command "omo-orchestrate" \
+  "Create an OpenAPI spec parser in lib/"
 ```
 
 ## Prerequisites
 
-- [OpenCode](https://opencode.ai) CLI
-- One or more LLM providers configured in `~/.config/opencode/opencode.json`
+- [OpenCode](https://opencode.ai) CLI v1.17+ installed
+- 하나 이상의 LLM provider가 `~/.config/opencode/opencode.json`에 설정되어 있어야 함
+- (선택) GitHub CLI `gh` — release note 생성에 사용
+
+## Installation
+
+OMO는 **설치형 패키지가 아닌 설정 팩**입니다.
+다음 중 하나의 방식으로 프로젝트에 적용하세요.
+
+### A. Git subtree / submodule (권장)
+
+```bash
+git subtree add --prefix .omo https://github.com/al-hub/omo.git main --squash
+# 또는
+git submodule add https://github.com/al-hub/omo.git .omo
+```
+
+### B. 직접 복사
+
+```bash
+# omo 레포를 클론한 후, 필요한 파일만 복사
+cp -r AGENTS.md opencode.jsonc .opencode/ docs/ <target-project>/
+```
+
+### C. 수동 통합
+
+프로젝트에 이미 `AGENTS.md`나 `opencode.jsonc`가 있다면,
+OMO의 설정을 참고하여 필요한 부분만 병합하세요.
+
+> **Note**: OMO는 전역 `~/.config/opencode/` 설정과 병합되어 동작합니다.
+> 프로젝트 로컬 설정이 전역 설정보다 우선합니다.
 
 ## Structure
 
 ```
-AGENTS.md              Orchestrator rules
-opencode.jsonc         Agent registration & permissions
-.opencode/agents/      Subagent definitions (researcher, reviewer)
-.opencode/skills/      Skill packs (orchestrate, memory, web-rag)
-.opencode/memory/      Persistent flat-file memory (auto-generated)
-docs/                  Architecture & workflow documentation
+OMO/
+├── AGENTS.md              Orchestrator rules (project-level)
+├── opencode.jsonc         Agent registration & permissions
+├── .opencode/
+│   ├── agents/            Subagent definitions (researcher, reviewer)
+│   ├── skills/            Skill packs (orchestrate, memory, web-rag)
+│   └── memory/            Persistent flat-file memory (auto-generated)
+├── docs/                  Architecture, workflow & roadmap
+├── CHANGELOG.md           Release history
+└── LICENSE                MIT
 ```
 
 ## How it works
 
-| Component | Role |
-|-----------|------|
-| `omo-orchestrate` skill | Entry point — routes complex tasks through a 9-stage pipeline |
-| `omo-memory` skill | Read/write/search persistent context |
-| `omo-web-rag` skill | Lightweight internet research workflow |
-| `omo-researcher` agent | Deep web RAG (used when web-rag skill is insufficient) |
-| `omo-reviewer` agent | Code review via git diff |
+OMO는 하나의 **entry skill**(`omo-orchestrate`)을 중심으로 동작합니다.
+
+```
+┌─ build agent (orchestrator) ──────────────────────────┐
+│  AGENTS.md rules → skill 로드 → 9-stage pipeline      │
+│  각 단계 완료 시 .opencode/memory/ 에 artifact 기록    │
+│  subagent는 skill 지시가 있을 때만 task()로 호출       │
+└───────────────────────────────────────────────────────┘
+         │ loads
+         ▼
+┌─ omo-orchestrate skill ───────────────────────────────┐
+│  1. Intake         (단순/복합 판단)                     │
+│  2. Local-scout    (코드베이스 탐색 → scout-*.md)      │
+│  3. Memory-reader  (과거 맥락 로드 → omo-memory skill) │
+│  4. Web-RAG        (조건부: 외부 정보 필요시)          │
+│  5. Plan           (실행 계획 → plan-*.md)             │
+│  6. Handoff        (3+ 파일 작업 → handoff-*.md)       │
+│  7. Implement      (코드 작성)                         │
+│  8. Checkpoint     (검증 → checkpoint-*.md)            │
+│  9. Test & Review  (리뷰어 호출 → review-*.md)         │
+│ 10. Summary        (요약 → summary-*.md, memory 저장)  │
+└───────────────────────────────────────────────────────┘
+```
+
+### Component roles
+
+| Component | Type | Role |
+|-----------|------|------|
+| `omo-orchestrate` | skill (entry) | Workflow pipeline definition |
+| `omo-memory` | skill (support) | Read/write/search `.opencode/memory/` |
+| `omo-web-rag` | skill (support) | Lightweight internet research workflow |
+| `omo-researcher` | subagent | Deep web RAG (fallback: when web-rag is insufficient) |
+| `omo-reviewer` | subagent | Code review via `git diff` |
 
 ## Example prompts
 
@@ -97,6 +181,21 @@ opencode session list
 | Model availability varies | Free-tier models have rate limits and may return Service Unavailable | Configure multiple providers in `~/.config/opencode/opencode.json` for fallback. |
 
 See `docs/TEST_LOG.md` for the full validation report.
+
+## Roadmap
+
+| Milestone | Focus |
+|-----------|-------|
+| v0.1 (MVP) | Skill-centered orchestration, flat-file memory, 2 subagents |
+| v0.2 | Multi-session memory merge, web-rag result caching |
+| v0.3 | Plugin-based custom stage support, template projects |
+| v1.0 | Stable API, full test coverage, CI validation |
+
+See [docs/ROADMAP.md](./docs/ROADMAP.md) for details.
+
+## Changelog
+
+- **v0.1.0** (2026-06-24) — MVP release. See [CHANGELOG.md](./CHANGELOG.md).
 
 ## License
 
