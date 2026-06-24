@@ -1,0 +1,67 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // OMO: Oh-My-Orchestrator
+  // Skill-centered multi-agent orchestration for OpenCode
+  //
+  // 전역 ~/.config/opencode/opencode.jsonc 를 상속 (병합).
+  // Duck-typing: 알 수 없는 필드는 무시됨.
+  //
+  // ※ model 값은 예시입니다. 사용자 환경에 맞게 provider/model-id를 변경하십시오.
+  // ※ agent는 .opencode/agents/*.md 에도 정의되어 있으며,
+  //    opencode.jsonc 의 값이 markdown frontmatter보다 우선합니다.
+
+  "agent": {
+    // build = orchestrator (전역 설정 상속 + 재정의)
+    "build": {
+      "model": "nvidia/stepfun-ai/step-3.5-flash",
+      "temperature": 0.3,
+      "steps": 100
+    },
+
+    // ── Subagents (sparingly used, skill-guided) ──
+
+    "omo-researcher": {
+      "description": "Deep web RAG subagent: search, fetch, synthesize to memory",
+      "mode": "subagent",
+      "model": "gemini/gemini-2.5-flash-lite",
+      "temperature": 0.2,
+      "permission": {
+        "bash": {
+          "*": "deny",
+          "ls *": "allow",
+          "mkdir *": "allow"
+        },
+        "edit": {
+          ".opencode/memory/*": "allow",
+          "*": "deny"
+        }
+      }
+    },
+
+    "omo-reviewer": {
+      "description": "Code review subagent: read diffs, write review report to memory",
+      "mode": "subagent",
+      "model": "gemini/gemini-2.5-flash",
+      "temperature": 0.1,
+      "permission": {
+        "edit": {
+          ".opencode/memory/*": "allow",
+          "*": "deny"
+        },
+        "bash": {
+          "git *": "allow",
+          "*": "deny"
+        }
+      }
+    }
+  },
+
+  // ── Skill permissions ──
+  "permission": {
+    "skill": {
+      "omo-*": "allow",
+      "*": "ask"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+# OMO Memory Store
+
+Memory files are created automatically by the omo-orchestrate workflow.
+See docs/ARCHITECTURE.md for the file naming convention and format.
