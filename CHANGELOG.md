@@ -2,11 +2,17 @@
 
 ## Unreleased
 
+## v0.1.1 — Installer stability (2026-06-24)
+
 ### Added
 
 - **`install.sh`** — 단일 Bash 기반 installer (--target, --global, --dry-run, --force 지원)
 - **`docs/INSTALLER.md`** — 설치 도구 사용 가이드
 - README.md Installation 섹션에 install.sh 방법 추가
+
+### Fixed
+
+- OMO installer 재설치 시 중첩 디렉토리 방지 및 백업 안정성 개선
 
 ## v0.1.0 — MVP (2026-06-24)
 
