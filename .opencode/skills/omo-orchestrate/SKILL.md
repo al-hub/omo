@@ -111,13 +111,54 @@ Before declaring implementation done:
 Artifact: .opencode/memory/checkpoint-{YYYYMMDD}-{seq}.md
 ```
 
-Verify:
+### File-level check
+
 - All planned files were touched?
 - Any files were modified but not planned?
 - The diff looks coherent?
 
-If verification passes: note "checkpoint: passed" and proceed.
-If verification fails: note what's wrong and return to Stage 6.
+### Syntax check
+
+Run a quick syntax check for the project's language:
+
+| Language | Command |
+|----------|---------|
+| Bash | `bash -n <file>` |
+| Python | `python -m py_compile <file>` or `ruff check <file>` |
+| TypeScript/JS | `npx tsc --noEmit --pretty` or `node -e "require('<file>')"` |
+| Go | `go vet ./...` |
+| Ruby | `ruby -c <file>` |
+
+If syntax check fails: stop, note the exact error, and return to Stage 6.
+
+### Quick test check
+
+If the project has a test command (check `package.json`, `Cargo.toml`, `Makefile`, `pytest.ini`, etc.), run:
+
+```
+<test command> --quiet --dry-run    # if available
+<test command> --list-tests         # fallback: just list to confirm test infra works
+```
+
+Do NOT run the full test suite — this is a quick check, not Stage 8.
+
+### Artifact
+
+Write the checkpoint result to `.opencode/memory/checkpoint-{YYYYMMDD}-{seq}.md`:
+
+```yaml
+---
+stage: checkpoint
+result: pass | fail
+checks:
+  file_check: pass | fail
+  syntax_check: pass | fail (<error summary if fail>)
+  quick_test: pass | fail | skipped
+---
+```
+
+If all checks pass: note "checkpoint: passed" and proceed to Stage 8.
+If any check fails: note what's wrong, include the error output, and return to Stage 6.
 
 ## Stage 8: Test & Review
 
