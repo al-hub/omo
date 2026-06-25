@@ -215,6 +215,13 @@ failures:
 
 ## Stage 9: Summary & Memory Update
 
+Before writing the summary, prune old memory files:
+
+1. Load `omo-memory` skill: `skill({ name: "omo-memory" })`
+2. Follow its pruning instructions (operation 5) to archive files older than the TTL.
+
+Then create the summary artifact:
+
 ```
 Artifact: .opencode/memory/summary-{YYYYMMDD}-{seq}.md
 ```
