@@ -225,3 +225,63 @@ Scenario B 종료 후 `opencode -c` 로 재개.
 - 섹션 구분자 `// ────`, `as const` 객체 네이밍, 공백 없는 간결 코드
 
 ✅ **성공** — 이전 session의 코딩 패턴과 컨텍스트가 정확히 유지됨
+
+---
+
+## Scenario C — Review-only task
+
+### Test environment
+
+| 항목 | 값 |
+|------|-----|
+| OMO version | v0.1.1-dev |
+| Test target repo | `26AI_Essential_Plus/new_projects/project1_factory` |
+| Target language | TypeScript |
+| Model | DeepSeek V4 Flash Free |
+| Date | 2026-06-25 |
+
+### 요청
+
+```
+src/utils/validators.ts의 최근 변경사항을 리뷰해줘. zod v4 패턴이 일관되게 적용되었는지,
+에지 케이스나 보안 취약점이 있는지 확인해줘
+```
+
+### 결과
+
+✅ **zod v4 패턴 일관성 — 양호** (6개 항목 모두 일관)
+- `import { z } from "zod"` (v4 root export)
+- 최상위 format validator (`z.email()`, `z.url()`, `z.ipv4()`, `z.uuid()`)
+- 통합 error param (message/invalid_type_error/required_error 미사용)
+- `.meta({ description })` → `.describe()` 대체
+- `z.union()` / `z.intersection()` → `.or()` / `.and()` 대체
+- `z.coerce.number()` → v4 coercion input type (unknown) 처리
+
+### 발견된 6개 이슈
+
+| # | 심각도 | 이슈 | 상세 |
+|---|--------|------|------|
+| 1 | 중간 | dateString/timeString 유효 날짜 미검증 | "2026-13-01", "2026-02-30" 통과 → `.pipe(z.coerce.date())` 필요 |
+| 2 | 낮음 | hexColor 3자리/알파 미지원 | `#FFF`, `#RRGGBBAA` 미허용 → regex 확장 필요 |
+| 3 | 낮음 | phone 국가번호별 길이 | 노르웨이 5자리 등 미허용 → `\d{4,15}`로 완화 + refine |
+| 4 | 중간 | jsonString 깊은 중첩 DoS 위험 | `JSON.parse` 재귀 한도 없음 → 깊이 체크 필요 |
+| 5 | 낮음 | Validators 팩토리 누락 항목 | guid, datetime, latitude, longitude 등 미포함 |
+| 6 | 중간 | email 기본값 불일치 | `email()` vs `Validators.email()`가 다른 schema 반환 |
+
+### 관찰
+
+- build agent가 **직접 리뷰** 수행 (subagent 호출 없음)
+- 파일 단위 구체적인 피드백 (6개 이슈, 각각 file:line 없으나 함수명으로 식별)
+- subagent 호출: 없음 (설계 의도와 일치)
+- ✅ **성공**
+
+---
+
+## Adoption test completion summary
+
+| 시나리오 | 결과 | 비고 |
+|----------|------|------|
+| A — Local-only bugfix | ✅ | 4 checkpoint iterations |
+| B — Web/RAG required task | ✅ | Full 9-stage pipeline |
+| C — Review-only task | ✅ | Direct handling, no subagent |
+| D — Session continuation | ✅ | Context preserved across sessions |
