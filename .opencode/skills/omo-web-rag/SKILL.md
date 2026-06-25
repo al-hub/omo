@@ -24,6 +24,18 @@ Use this skill when the current task requires external information not available
 
 ## Workflow
 
+### Depth control
+
+The orchestrator may pass a depth preference. Adjust parameters accordingly:
+
+| Mode | numResults | max fetches | Synthesis | Subagent delegation |
+|------|-----------|-------------|-----------|-------------------|
+| `--quick` | 3 | 2 | Skip (return raw findings) | Never |
+| `auto` (default) | 5 | 3-5 | Full synthesis (Step 4) | If scope warrants |
+| `--deep` | 8 | 5-7 | Full synthesis | Recommended for broad topics |
+
+If no depth is specified, use `auto`.
+
 ### Step 0: Cache check
 
 Before searching the web, check if a recent research artifact already covers this topic.

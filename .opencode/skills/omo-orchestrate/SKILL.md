@@ -70,9 +70,13 @@ Decide: does this task need external information?
 - Standard algorithm in familiar language? → No
 
 If yes:
-1. Load `omo-web-rag` skill: `skill({ name: "omo-web-rag" })`
-2. Follow its instructions to search, fetch, and summarize.
-3. If the research scope is very large or ambiguous, delegate to `omo-researcher` subagent via `task()`.
+1. Determine depth:
+   - Trivial lookup (one fact, known source) → `--quick`
+   - Standard research (library docs, best practices) → `auto` (default)
+   - Deep investigation (multiple libs, architecture decisions) → `--deep`
+2. Load `omo-web-rag` skill: `skill({ name: "omo-web-rag" })`
+3. Follow its instructions, passing the depth preference.
+4. If the research scope is very large or ambiguous, delegate to `omo-researcher` subagent via `task()`.
 
 If no: skip this stage.
 
