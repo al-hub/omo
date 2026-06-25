@@ -8,7 +8,16 @@
 
 - **`install.sh`** — 단일 Bash 기반 installer (--target, --global, --dry-run, --force 지원)
 - **`docs/INSTALLER.md`** — 설치 도구 사용 가이드
-- README.md Installation 섹션에 install.sh 방법 추가
+- README.md: Installation 섹션에 install.sh 권장 방법 추가
+- README.md, INSTALLER.md: `git archive` ZIP 배포 방법 문서화
+- `.gitignore`: `*.zip` 패턴 추가
+
+### Fixed
+
+- `cp -r` 중첩 디렉토리 버그 수정 (--force 재설치 시 skills/omo-*/omo-* 생김)
+- AGENTS.md만 있는 프로젝트에서 --force 없이 marker 병합 가능하도록 개선
+- --target 인자 누락 시 친절한 에러 메시지 출력
+- installer 버전 문구 v0.1.1-dev로 갱신
 
 ### Fixed
 
