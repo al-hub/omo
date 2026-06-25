@@ -85,34 +85,101 @@ src/utils/formatDate.ts의 변수명 오타를 수정해줘
 ### Scenario B — Web/RAG required task
 
 **목적**: 새로운 라이브러리나 API를 도입할 때 RAG workflow가 동작하는지 확인.
+이 시나리오는 OMO pipeline의 **전체 9개 stage를 모두 검증**합니다.
 
-**프롬프트 예시**:
+#### Test target 조건
+
+| 조건 | 설명 |
+|------|------|
+| 언어 | TypeScript/JavaScript (npm test 가능) |
+| 기존 zod 사용 | `package.json`에 `zod` 의존성이 있고, `import { z } from "zod"` 패턴 사용 |
+| 테스트 가능 | `npm test` 또는 `npm run test` 통과 |
+
+**권장 후보**: 작은 Express/Fastify API 서버, CLI 도구, 유틸리티 라이브러리
+
+#### 실행 절차
+
+**준비 단계 (tester)**:
+
+```bash
+# 1. 대상 repo 클론
+git clone <target-repo-url> /tmp/adopt-b
+cd /tmp/adopt-b
+
+# 2. OMO 설치 (install.sh 사용)
+/path/to/omo/install.sh --target /tmp/adopt-b
+
+# 3. 기존 테스트 통과 확인
+npm test
+# → PASS 여부 기록
+
+# 4. OpenCode 세션 시작
+opencode .
 ```
-최신 zod v4 릴리즈 노트를 확인하고, 변경된 API를 반영한 마이그레이션 유틸을 src/migration/ 아래에 만들어줘
+
+**요청**:
+
+```
+최신 zod v4 릴리즈 노트를 확인하고, 변경된 API를 반영한 마이그레이션 유틸을 src/migration/ 아래에 만들어줘. src/ 디렉토리가 없으면 만들고, 패턴은 기존 zod import 방식을 참고해.
 ```
 
-**예상 동작**:
-- Stage 0: 복합 작업 판단
-- Stage 1: Local-scout (기존 zod 사용 패턴 탐색)
-- Stage 2: Memory-reader (과거 맥락 확인)
-- Stage 3: Web-RAG (zod v4 문서 검색 + fetch)
-- Stage 4: Plan 작성
-- Stage 5: Handoff 생성 (multi-file)
-- Stage 6: 구현
-- Stage 7: Checkpoint
-- Stage 8: Test & Review
-- Stage 9: Summary 저장
+#### 관찰 포인트 (stage별)
 
-**성공 기준**:
-- [ ] 모든 9개 stage가 실행됨
-- [ ] research-*.md 파일 생성됨
-- [ ] plan-*.md 파일 생성됨
-- [ ] handoff-*.md 파일 생성됨
-- [ ] checkpoint-*.md 파일 생성됨
-- [ ] review-*.md 파일 생성됨
-- [ ] summary-*.md 파일 생성됨
-- [ ] 구현된 코드가 실제로 동작함 (테스트 통과)
-- [ ] subagent 호출이 필요 이상으로 많지 않음
+| Stage | 관찰할 것 | 기대 동작 |
+|-------|-----------|-----------|
+| 0 | 복합 작업 판단 메시지 | "task requires orchestration" 또는 유사 메시지 |
+| 1 | scout-*.md 생성 | 파일 읽기 + 패턴 분석 |
+| 2 | memory-reader 동작 | 이전 memory 확인 (없으면 "no prior context") |
+| 3 | **web-search 호출** | "zod v4 release notes" 검색 |
+| 3 | **web-fetch 호출** | 실제 URL fetch |
+| 3 | research-*.md 생성 | topic, sources, key findings 포함 |
+| 4 | plan-*.md 생성 | Goal, Approach, Files, Steps, Risks 포함 |
+| 5 | handoff-*.md 생성 | task summary, decisions, files, pitfalls 포함 |
+| 6 | 코드 구현 | src/migration/ 아래에 파일 생성 |
+| 7 | checkpoint-*.md 생성 | file_check, syntax_check, quick_test 결과 |
+| 7 | syntax check 실행 | npx tsc --noEmit 또는 npm test --dry-run |
+| 8 | 테스트 실행 | npm test 통과 |
+| 8 | review-*.md 생성 | reviewer 호출 시에만 |
+| 9 | summary-*.md 생성 | what was done, learned 포함 |
+
+#### 체크리스트
+
+- [ ] **Stage 0**: 복합 작업 자동 판단
+- [ ] **Stage 1**: scout-*.md 파일 생성됨
+- [ ] **Stage 2**: memory-reader 실행 (또는 skip)
+- [ ] **Stage 3**: web-search 1회 이상 호출됨
+- [ ] **Stage 3**: web-fetch 1회 이상 호출됨
+- [ ] **Stage 3**: research-*.md 파일 생성됨 (topic, sources, key findings 포함)
+- [ ] **Stage 4**: plan-*.md 파일 생성됨 (6개 필수 항목 포함)
+- [ ] **Stage 5**: handoff-*.md 파일 생성됨 (6개 필수 섹션 포함)
+- [ ] **Stage 6**: src/migration/ 아래에 실제 코드 생성됨
+- [ ] **Stage 7**: checkpoint-*.md 파일 생성됨 (file/syntax/test check 포함)
+- [ ] **Stage 7**: syntax check 자동 실행
+- [ ] **Stage 8**: npm test 통과
+- [ ] **Stage 9**: summary-*.md 파일 생성됨
+- [ ] **전체**: 6개 이상 artifact 파일 생성 (scout, research, plan, handoff, checkpoint, summary)
+- [ ] **전체**: subagent 호출이 필요 이상으로 많지 않음 (researcher는 0-1회)
+- [ ] **전체**: 최종 코드가 실제로 동작함 (테스트 통과)
+
+#### 데이터 기록 양식
+
+```yaml
+scenario: B
+target_repo: <url>
+target_language: TypeScript
+omo_version: v0.1.1-dev
+date: <YYYY-MM-DD>
+duration_minutes: <int>
+stage_count: <int>  # 실행된 stage 수 (1-9)
+artifact_count: <int>  # 생성된 artifact 파일 수
+web_search_count: <int>  # websearch 호출 횟수
+web_fetch_count: <int>  # webfetch 호출 횟수
+subagent_calls: <int>  # task() 호출 횟수
+iterations: <int>  # Stage 6↔7 loop 횟수
+result: pass | fail
+fail_stage: <number> | null
+notes: <string>
+```
 
 ---
 
