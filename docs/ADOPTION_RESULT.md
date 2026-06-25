@@ -126,8 +126,52 @@
 
 8. **Failure pattern recognition**
    - 반복되는 실패 패턴(예: stack_pop 순서)을 학습하여 제안 제공
-
 ---
+
+## Scenario B — Web/RAG required task
+
+### Test environment
+
+| 항목 | 값 |
+|------|-----|
+| OMO version | v0.1.1-dev |
+| Test target repo | `26AI_Essential_Plus/new_projects/project1_factory` |
+| Target language | TypeScript |
+| Target test command | npm test |
+| Model | DeepSeek V4 Flash Free |
+| Date | 2026-06-25 |
+| Tester | OMO orchestrator |
+
+### 작업 내용
+
+zod v4 릴리즈 노트를 RAG로 조회하고, 변경된 API를 반영한 migration 유틸을 `src/migration/`에 생성.
+
+### 생성 파일
+
+| 파일 | 내용 |
+|------|-------|
+| `src/migration/zod-v4-migration.ts` | migrateErrorParam, toV4ErrorOption, v4.email/url/uuid, formatError, flattenError, describe, nativeEnum, migrationChecklist |
+| `src/migration/index.ts` | barrel export |
+
+### Web-RAG source
+
+- zod.dev/v4/changelog
+- zod.dev/v4
+- github.com/colinhacks/zod/releases (v4.0.0 ~ v4.4.3)
+
+### Results
+
+| 지표 | 값 |
+|------|-----|
+| Model | DeepSeek V4 Flash Free |
+| Approximate duration | ~8분 |
+| 생성 파일 수 | 2 (zod-v4-migration.ts, index.ts) |
+| 헬퍼 함수 수 | 8 |
+| Artifact 파일 | (미확인) |
+| Stage 6↔7 iterations | (미확인) |
+| Subagent 호출 | (미확인) |
+
+✅ **성공** — migration 유틸 8개 헬퍼 함수 + migrationChecklist 11개 항목 포함
 
 ## Appendix: Detailed iteration log
 
