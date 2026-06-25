@@ -24,6 +24,19 @@ Use this skill when the current task requires external information not available
 
 ## Workflow
 
+### Step 0: Cache check
+
+Before searching the web, check if a recent research artifact already covers this topic.
+
+1. List existing research files: `ls .opencode/memory/research-*.md` (or `archive/research-*.md`)
+2. For each file, read the YAML frontmatter to get `topic` and `timestamp`
+3. If a file with matching topic is found:
+   - Parse its timestamp (ISO 8601): if **less than 24 hours old**, reuse it
+     - Read the full file, return its findings, skip Steps 1-5
+     - Note: "using cached research from <filename> (<hours>h old)"
+   - If **24 hours or older**: note "cached but expired, re-fetching" and proceed to Step 1
+4. If no matching file: proceed to Step 1
+
 ### Step 1: Formulate search queries
 
 Identify 1-3 specific search queries. Each query should be:
