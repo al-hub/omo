@@ -11,6 +11,27 @@ metadata:
 
 You are the OMO orchestrator. Follow this workflow for any non-trivial task.
 
+## Workflow discipline
+
+### Iteration tracking
+
+Each time you return from Stage 7 (Checkpoint) to Stage 6 (Implement) is one iteration.
+Track the iteration count in every artifact filename: `{stage}-{YYYYMMDD}-{seq}-it{NN}.md`.
+
+Maximum iterations per task: **5**. If iteration 5 fails, stop and ask the user:
+> "I've attempted this task 5 times without success. The current issue is: <summary>.
+> Do you want to guide me in a different direction, or should I try a different approach?"
+
+### Progress display
+
+At the start of each stage, announce the current position:
+
+> **[Stage N / 9] — <Stage name>** (iteration X)
+
+For example:
+> **[Stage 3 / 9] — Web-RAG** (iteration 1)
+> **[Stage 7 / 9] — Checkpoint** (iteration 3)
+
 ## Stage 0: Intake
 
 Receive the user's request. Determine:
@@ -159,6 +180,29 @@ checks:
 
 If all checks pass: note "checkpoint: passed" and proceed to Stage 8.
 If any check fails: note what's wrong, include the error output, and return to Stage 6.
+
+### Iteration limit
+
+If this is the 5th return to Stage 6 on the same task, do NOT continue looping.
+Instead, write a summary checkpoint with the failure history and ask the user for guidance.
+
+```
+Artifact: .opencode/memory/checkpoint-{YYYYMMDD}-{seq}-it05.md
+```
+
+```yaml
+---
+stage: checkpoint
+result: exhausted
+iterations: 5
+failures:
+  - it01: <brief reason>
+  - it02: <brief reason>
+  - it03: <brief reason>
+  - it04: <brief reason>
+  - it05: <brief reason>
+---
+```
 
 ## Stage 8: Test & Review
 
