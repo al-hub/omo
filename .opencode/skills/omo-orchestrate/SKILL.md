@@ -130,6 +130,14 @@ If you get stuck or discover something that invalidates the plan:
 - Stop implementing.
 - Update the handoff.md with the new finding.
 - Return to Stage 4 (Plan) to revise.
+- When reporting the issue, use this format:
+
+  ```
+  Implementation blocked: <brief summary>
+  - What: <what went wrong or what was discovered>
+  - Why: <root cause analysis>
+  - Fix: <proposed solution or alternative approach>
+  ```
 
 ## Stage 7: Checkpoint
 
@@ -187,6 +195,14 @@ checks:
 
 If all checks pass: note "checkpoint: passed" and proceed to Stage 8.
 If any check fails: note what's wrong, include the error output, and return to Stage 6.
+When a check fails, report with this format:
+
+```
+Checkpoint failed: <check_name>
+- What: <specific error or failure description>
+- Why: <root cause: logic error, syntax mistake, missing edge case>
+- Fix: <concrete next step to resolve>
+```
 
 ### Iteration limit
 
@@ -215,6 +231,15 @@ failures:
 
 1. Run the project's test/lint/typecheck commands if they exist.
 2. If issues found, fix them directly (not a review step — fix and return to Stage 7).
+   When a test fails, report with this format:
+
+   ```
+   Test failed: <command or test name>
+   - What: <actual error output (first 5 lines)>
+   - Why: <root cause: assertion logic, missing import, type mismatch>
+   - Fix: <concrete change to make>
+   ```
+
 3. If tests pass and code looks clean, load `omo-reviewer` subagent for a fresh perspective:
    `task({ subagent_type: "omo-reviewer", prompt: "<diff summary and goal>" })`
 4. Read the reviewer's output from `.opencode/memory/review-*.md`.
