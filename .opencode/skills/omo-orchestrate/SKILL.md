@@ -79,14 +79,16 @@ If the task involves 3+ files, new patterns, or risky changes:
 Artifact: .opencode/memory/handoff-{YYYYMMDD}-{seq}.md
 ```
 
-The handoff contains:
+The handoff must follow the template defined in `docs/HANDOFF_TEMPLATE.md`.
+Required sections:
 - Task summary (from Stage 4 plan)
 - Current codebase state (from Stage 1 scout)
 - Key decisions made so far
-- Files to touch and what to do in each
+- Files to touch and what to do in each (one subsection per file)
 - Any pitfalls or gotchas discovered
+- Verification criteria (how to confirm implementation is correct)
 
-This file serves as the single source of truth for the implementer.
+This file serves as the single source of truth for the implementer. Do NOT skip sections — incomplete handoffs cause implementation drift.
 
 ## Stage 6: Implement
 
