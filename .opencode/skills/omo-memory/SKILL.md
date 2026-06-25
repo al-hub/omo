@@ -92,7 +92,45 @@ Move aged memory files to `archive/` to keep working memory focused.
 - Before loading context for a new task (Stage 2)
 - Skip pruning during active task execution to avoid disrupting in-progress artifacts
 
-### 6. When to use this skill
+### 6. Merge memories
+
+Combine multiple past summaries into a single context object for session resume.
+
+**When to merge:**
+- Starting a new session after a previous session completed (detected by existing `summary-*.md` files)
+- Before loading context for a complex task (Stage 2)
+
+**Procedure:**
+
+1. List all `summary-*.md` and `research-*.md` files in `.opencode/memory/` (not in `archive/`)
+2. Sort by `timestamp` descending (newest first)
+3. Select the top 5 most recent files
+4. For each file, read the full content and extract:
+   - `stage` and `task` from YAML frontmatter
+   - "What was done" section (for summaries)
+   - "What was learned" section (for summaries)
+   - "Key findings" section (for research files)
+5. Combine into a single context with this structure:
+
+```
+## Previous session context
+
+### Most recent session: <task> (<timestamp>)
+<what was done> / <key findings>
+
+### Prior session: <task> (<timestamp>)
+<what was done> / <key findings>
+...
+```
+
+6. If there is a `handoff-*.md` file with matching `task` that is still open (no corresponding `summary-*.md`), include it as "in-progress context"
+
+**Deduplication rules:**
+- If two summary files describe the same task (matching by `task` field), keep only the newer one
+- If a summary and research file cover the same topic, prefer the summary (it's more synthesized)
+- Skip files tagged `ephemeral` (they were intentionally short-lived)
+
+### 7. When to use this skill
 
 Call this skill when:
 - Starting a complex task (load past context)

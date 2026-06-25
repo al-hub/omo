@@ -56,11 +56,14 @@ Artifact: .opencode/memory/scout-{YYYYMMDD}-{seq}.md
 Load relevant past context from `.opencode/memory/`.
 
 1. Load `omo-memory` skill: `skill({ name: "omo-memory" })`
-2. Follow its instructions to:
+2. If this appears to be a resumed session (memory directory already contains `summary-*.md` files):
+   - Follow the **Merge memories** operation (operation 6) to combine past session contexts
+   - Include the merged context in your current working context
+3. Then follow standard memory operations to:
    - List existing memory files with `ls .opencode/memory/`
    - Grep for keywords matching the current task
    - Read the most relevant 1-3 files
-3. If no relevant memory found, note "no prior context".
+4. If no relevant memory found, note "no prior context".
 
 ## Stage 3: Web-RAG (conditional)
 
