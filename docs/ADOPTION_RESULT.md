@@ -195,3 +195,33 @@ zod v4 릴리즈 노트를 RAG로 조회하고, 변경된 API를 반영한 migra
 - Fixed: is_done 체크를 stack_contains 이후로 이동
 - Tests: All passed
 - Checkpoint: SUCCESS
+
+---
+
+## Scenario D — Session continuation
+
+### Test environment
+
+| 항목 | 값 |
+|------|-----|
+| OMO version | v0.1.1-dev |
+| Test target repo | `26AI_Essential_Plus/new_projects/project1_factory` |
+| Target language | TypeScript |
+| Model | DeepSeek V4 Flash Free |
+| Date | 2026-06-25 |
+
+### 세션 재개 결과
+
+Scenario B 종료 후 `opencode -c` 로 재개.
+요청: "저번에 만든 zod-v4-migration.ts 패턴을 src/utils/validators.ts에도 동일하게 적용해줘"
+
+### 유지된 컨텍스트
+
+- `import { z } from "zod"` — 동일한 import 방식
+- `z.email()`, `z.url()`, `z.ipv4()`, `z.uuid()` — v4 최상위 format validator
+- 통합 error param (message/invalid_type_error 사용 안 함)
+- `.meta({ description })` — `.describe()` 대체
+- `z.union()` / `z.intersection()` — `.or()` / `.and()` 대체
+- 섹션 구분자 `// ────`, `as const` 객체 네이밍, 공백 없는 간결 코드
+
+✅ **성공** — 이전 session의 코딩 패턴과 컨텍스트가 정확히 유지됨
